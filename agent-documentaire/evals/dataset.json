@@ -1,0 +1,12 @@
+[
+  {"question": "Combien de jours de congés payés a un salarié à temps plein ?", "expected_source": "conges.md", "expected_keywords": ["25"]},
+  {"question": "Combien de temps à l'avance dois-je demander mes congés ?", "expected_source": "conges.md", "expected_keywords": ["deux semaines"]},
+  {"question": "Les alternants ont-ils des jours pour réviser leurs examens ?", "expected_source": "conges.md", "expected_keywords": ["5"]},
+  {"question": "Combien de jours de télétravail par semaine sont autorisés ?", "expected_source": "teletravail.md", "expected_keywords": ["2"]},
+  {"question": "Quel jour faut-il obligatoirement être au bureau ?", "expected_source": "teletravail.md", "expected_keywords": ["lundi"]},
+  {"question": "Quel est le montant de l'indemnité de télétravail ?", "expected_source": "teletravail.md", "expected_keywords": ["2,50"]},
+  {"question": "Quel est le plafond pour un repas en déplacement ?", "expected_source": "notes_de_frais.md", "expected_keywords": ["20"]},
+  {"question": "Quelle part de l'abonnement Navigo est remboursée ?", "expected_source": "notes_de_frais.md", "expected_keywords": ["50"]},
+  {"question": "Dans quel délai faut-il déposer une note de frais ?", "expected_source": "notes_de_frais.md", "expected_keywords": ["30"]},
+  {"question": "Quel est le salaire du directeur général ?", "expected_source": null, "expected_keywords": ["ne trouve pas", "pas d'information", "ne figure pas", "aucune information"], "match": "any"}
+]
