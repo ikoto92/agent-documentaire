@@ -10,11 +10,14 @@ from app.tracing import Tracer
 
 
 def make_client(settings: Settings) -> OpenAI:
-    return OpenAI(base_url=settings.base_url, api_key=settings.api_key)
+    # max_retries : en cas de surcharge (erreur 503), le client réessaie automatiquement
+    # en attendant un peu plus à chaque fois. On reste à 2 pour ne pas épuiser le quota gratuit.
+    return OpenAI(base_url=settings.base_url, api_key=settings.api_key, max_retries=2, timeout=60)
 
 
 def make_embedder(settings: Settings) -> OpenAICompatibleEmbedder:
-    return OpenAICompatibleEmbedder(make_client(settings), settings.embed_model)
+    client = OpenAI(base_url=settings.embed_base_url, api_key=settings.embed_api_key, max_retries=2, timeout=60)
+    return OpenAICompatibleEmbedder(client, settings.embed_model)
 
 
 def make_agent(settings: Settings | None = None) -> Agent:

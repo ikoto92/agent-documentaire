@@ -5,7 +5,7 @@ from dataclasses import dataclass, field
 
 from dotenv import load_dotenv
 
-load_dotenv()
+load_dotenv(encoding="utf-8-sig")  # utf-8-sig : accepte aussi les fichiers enregistrés « avec BOM »
 
 
 def _env(name: str, default: str) -> str:
@@ -19,6 +19,9 @@ class Settings:
     api_key: str = field(default_factory=lambda: _env("LLM_API_KEY", "ollama"))
     chat_model: str = field(default_factory=lambda: _env("CHAT_MODEL", "qwen2.5:7b"))
     embed_model: str = field(default_factory=lambda: _env("EMBED_MODEL", "nomic-embed-text"))
+    # Facultatif : un autre fournisseur pour les embeddings (sinon, le même que pour le chat)
+    embed_base_url: str = field(default_factory=lambda: _env("EMBED_BASE_URL", _env("LLM_BASE_URL", "http://localhost:11434/v1")))
+    embed_api_key: str = field(default_factory=lambda: _env("EMBED_API_KEY", _env("LLM_API_KEY", "ollama")))
 
     # Fichiers
     docs_dir: str = field(default_factory=lambda: _env("DOCS_DIR", "data/docs"))
