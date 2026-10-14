@@ -43,3 +43,26 @@ def test_each_question_is_traced(tmp_path):
     assert record["question"] == "Combien de jours de congés payés ?"
     assert record["prompt_tokens"] == 20
     assert "latency_ms" in record
+
+
+def test_provider_extra_fields_are_sent_back():
+    """Gemini exige que la signature de raisonnement d'un appel d'outil soit renvoyée."""
+    from openai.types.chat import ChatCompletionMessage
+
+    message = ChatCompletionMessage.model_validate(
+        {
+            "role": "assistant",
+            "content": None,
+            "tool_calls": [
+                {
+                    "id": "c1",
+                    "type": "function",
+                    "function": {"name": "search_documents", "arguments": "{}"},
+                    "extra_content": {"google": {"thought_signature": "abc123"}},
+                }
+            ],
+        }
+    )
+    data = Agent._assistant_message(message)
+    assert data["role"] == "assistant"
+    assert data["tool_calls"][0]["extra_content"]["google"]["thought_signature"] == "abc123"

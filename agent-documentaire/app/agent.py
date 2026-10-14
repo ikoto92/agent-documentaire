@@ -115,21 +115,9 @@ class Agent:
                 answer.text = (message.content or "").strip()
                 break
 
-            # Le LLM demande un ou plusieurs outils : on les exécute.
-            messages.append(
-                {
-                    "role": "assistant",
-                    "content": message.content or "",
-                    "tool_calls": [
-                        {
-                            "id": call.id,
-                            "type": "function",
-                            "function": {"name": call.function.name, "arguments": call.function.arguments},
-                        }
-                        for call in message.tool_calls
-                    ],
-                }
-            )
+            # Le LLM demande un ou plusieurs outils : on renvoie sa demande telle quelle
+            # dans l'historique, puis on exécute les outils.
+            messages.append(self._assistant_message(message))
             for call in message.tool_calls:
                 try:
                     args = json.loads(call.function.arguments or "{}")
@@ -157,6 +145,33 @@ class Agent:
             }
         )
         return answer
+
+    @staticmethod
+    def _assistant_message(message) -> dict:
+        """Recopie le message du LLM qui demande des outils, sans rien perdre.
+
+        Certains fournisseurs ajoutent des champs à renvoyer obligatoirement au tour suivant.
+        Par exemple, les modèles Gemini « qui réfléchissent » joignent à chaque appel d'outil
+        une signature de raisonnement (extra_content.google.thought_signature) : si on ne la
+        renvoie pas, l'API répond par une erreur 400. On garde donc le message complet.
+        """
+        if hasattr(message, "model_dump"):
+            data = message.model_dump(exclude_none=True)
+            data["role"] = "assistant"
+            data["content"] = message.content or ""
+            return data
+        return {
+            "role": "assistant",
+            "content": message.content or "",
+            "tool_calls": [
+                {
+                    "id": call.id,
+                    "type": "function",
+                    "function": {"name": call.function.name, "arguments": call.function.arguments},
+                }
+                for call in message.tool_calls
+            ],
+        }
 
     @staticmethod
     def _add_usage(answer: AgentAnswer, response) -> None:
