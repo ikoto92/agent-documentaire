@@ -5,7 +5,15 @@ Usage : python chat.py
 
 import openai
 
+from app.display import format_answer
 from app.factory import make_agent
+
+try:  # active les couleurs et le gras dans la console Windows
+    import colorama
+
+    colorama.just_fix_windows_console()
+except ImportError:
+    pass
 
 
 def main() -> None:
@@ -38,9 +46,10 @@ def main() -> None:
         except openai.APIConnectionError:
             print("\nImpossible de joindre le fournisseur. Vérifiez votre connexion et LLM_BASE_URL dans .env.\n")
             continue
-        print(f"\nAgent > {answer.text}")
         tokens = answer.usage["prompt_tokens"] + answer.usage["completion_tokens"]
-        print(f"        sources : {', '.join(answer.sources) or 'aucune'} | {answer.model} | {answer.latency_ms:.0f} ms | {tokens} tokens\n")
+        print("\nAgent >")
+        print(format_answer(answer.text, answer.sources, answer.model, answer.latency_ms, tokens))
+        print()
 
 
 if __name__ == "__main__":
