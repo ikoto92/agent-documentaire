@@ -91,6 +91,22 @@ Deux scores sont calculés :
 `--min-score 0.8` fait échouer le script sous 80 % : on peut l'ajouter à la CI pour bloquer une régression
 quand on change de modèle, de prompt ou de taille de chunk.
 
+## Modèle de secours (facultatif)
+
+Avec `CHAT_MODEL_FALLBACK=gemini-3.8-flash-lite` dans `.env`, si le modèle principal est surchargé (erreur 503)
+ou a épuisé son quota (erreur 429), l'agent recommence automatiquement la question avec le modèle de secours.
+Le basculement est enregistré dans les traces, et le modèle utilisé s'affiche sous chaque réponse.
+
+## Recherche sur Internet (facultatif)
+
+Ajoutez `WEB_SEARCH=on` dans `.env` pour donner à l'agent un troisième outil, `search_web`.
+Le LLM choisit alors lui-même la bonne source : les documents internes pour les questions sur
+l'entreprise, le web pour les questions générales ou récentes. Les pages web sont citées par leur URL.
+
+Le prompt précise que le contenu des pages web est une simple donnée, jamais une instruction :
+c'est une protection contre l'injection de prompt. Sans `WEB_SEARCH=on`, l'outil n'est même pas
+proposé au LLM.
+
 ## Serveur MCP
 
 `mcp_server.py` expose deux outils, `search_documents` et `list_documents`, via le Model Context Protocol.

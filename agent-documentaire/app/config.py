@@ -18,6 +18,8 @@ class Settings:
     base_url: str = field(default_factory=lambda: _env("LLM_BASE_URL", "http://localhost:11434/v1"))
     api_key: str = field(default_factory=lambda: _env("LLM_API_KEY", "ollama"))
     chat_model: str = field(default_factory=lambda: _env("CHAT_MODEL", "qwen2.5:7b"))
+    # Modèles de secours, séparés par des virgules, utilisés si le principal est surchargé ou à court de quota
+    fallback_models: list[str] = field(default_factory=lambda: [m.strip() for m in _env("CHAT_MODEL_FALLBACK", "").split(",") if m.strip()])
     embed_model: str = field(default_factory=lambda: _env("EMBED_MODEL", "nomic-embed-text"))
     # Facultatif : un autre fournisseur pour les embeddings (sinon, le même que pour le chat)
     embed_base_url: str = field(default_factory=lambda: _env("EMBED_BASE_URL", _env("LLM_BASE_URL", "http://localhost:11434/v1")))
@@ -32,6 +34,10 @@ class Settings:
     chunk_size: int = field(default_factory=lambda: int(_env("CHUNK_SIZE", "500")))
     chunk_overlap: int = field(default_factory=lambda: int(_env("CHUNK_OVERLAP", "100")))
     top_k: int = field(default_factory=lambda: int(_env("TOP_K", "4")))
+
+    # Recherche sur Internet (outil search_web) : "on" pour l'activer
+    web_search: bool = field(default_factory=lambda: _env("WEB_SEARCH", "off").lower() in {"on", "1", "true", "oui"})
+    web_max_results: int = field(default_factory=lambda: int(_env("WEB_MAX_RESULTS", "5")))
 
 
 def get_settings() -> Settings:

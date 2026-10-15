@@ -40,7 +40,7 @@ def main() -> None:
             continue
         print(f"\nAgent > {answer.text}")
         tokens = answer.usage["prompt_tokens"] + answer.usage["completion_tokens"]
-        print(f"        sources : {', '.join(answer.sources) or 'aucune'} | {answer.latency_ms:.0f} ms | {tokens} tokens\n")
+        print(f"        sources : {', '.join(answer.sources) or 'aucune'} | {answer.model} | {answer.latency_ms:.0f} ms | {tokens} tokens\n")
 
 
 if __name__ == "__main__":

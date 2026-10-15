@@ -57,3 +57,53 @@ class LoopingChatClient(FakeChatClient):
 
     def _create(self, model, messages, tools=None, temperature=0):
         return _response(tool_calls=[_tool_call("call_x", "list_documents", "{}")])
+
+
+class FakeWebSearcher:
+    """Simule un moteur de recherche sans accès réseau."""
+
+    def __init__(self, fail: bool = False):
+        self.fail = fail
+        self.queries: list[str] = []
+
+    def search(self, query: str, max_results: int = 5):
+        from app.web import WebResult
+
+        self.queries.append(query)
+        if self.fail:
+            raise RuntimeError("La recherche web a échoué : réseau indisponible")
+        return [WebResult(title="ETNA – école d'informatique", url="https://etna.io", snippet="École en alternance à Ivry-sur-Seine.")]
+
+
+class WebChatClient(FakeChatClient):
+    """Simule un LLM qui choisit l'outil search_web, puis répond."""
+
+    def _create(self, model, messages, tools=None, temperature=0):
+        self.calls.append(list(messages))
+        self.tools_seen = [t["function"]["name"] for t in (tools or [])]
+        if not any(m["role"] == "tool" for m in messages):
+            return _response(tool_calls=[_tool_call("call_w", "search_web", '{"query": "ETNA école"}')])
+        return _response(content="L'ETNA est une école en alternance [https://etna.io].")
+
+
+class ProviderError(Exception):
+    """Imite une erreur HTTP du fournisseur (comme openai.APIStatusError)."""
+
+    def __init__(self, status_code: int):
+        super().__init__(f"Erreur {status_code}")
+        self.status_code = status_code
+
+
+class OverloadedClient(FakeChatClient):
+    """Le modèle 'principal' est surchargé (503) ; les autres modèles répondent normalement."""
+
+    def __init__(self, status_code: int = 503):
+        super().__init__()
+        self.status_code = status_code
+        self.models_called: list[str] = []
+
+    def _create(self, model, messages, tools=None, temperature=0):
+        self.models_called.append(model)
+        if model == "principal":
+            raise ProviderError(self.status_code)
+        return super()._create(model, messages, tools, temperature)
