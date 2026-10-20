@@ -1,0 +1,9 @@
+openai>=1.40
+pypdf>=4.0
+numpy>=1.26
+python-dotenv>=1.0
+mcp>=2.2
+pytest>=8.0
+ddgs>=9.0
+colorama>=0.4
+streamlit>=1.40
