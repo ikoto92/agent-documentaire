@@ -13,12 +13,15 @@ st.set_page_config(page_title="Agent documentaire IA", page_icon="📚", layout=
 
 # En ligne, la clé API est rangée dans les « Secrets » de l'hébergeur, jamais dans le code.
 # On les recopie dans les variables d'environnement avant de lire la configuration.
+SECRETS_PROBLEM = ""
 try:
     for key, value in st.secrets.items():
         if isinstance(value, (str, int, float)):
-            os.environ.setdefault(key, str(value))
-except Exception:  # pas de fichier de secrets en local : on utilise le .env
+            os.environ[key] = str(value).strip()
+except FileNotFoundError:  # pas de fichier de secrets en local : on utilise le .env
     pass
+except Exception as error:  # secrets mal écrits (guillemets, ligne invalide...)
+    SECRETS_PROBLEM = f"Les Secrets sont mal écrits et ont été ignorés : {error}"
 
 from app.config import get_settings  # noqa: E402  (après la lecture des secrets)
 from app.display import format_answer_markdown  # noqa: E402
@@ -89,7 +92,19 @@ with st.expander("Comment ça marche ?"):
 try:
     agent = load_agent()
 except Exception as error:  # clé absente, documents manquants...
+    settings = get_settings()
     st.error(f"L'agent n'a pas pu démarrer : {error}")
+    diagnostic = [
+        f"- Adresse du modèle (LLM_BASE_URL) : `{settings.base_url}`",
+        f"- Adresse des embeddings : `{settings.embed_base_url}`",
+        f"- Clé API (LLM_API_KEY) : {'présente' if settings.api_key not in ('', 'ollama') else '**absente**'}",
+        f"- Modèles : `{settings.chat_model}` / embeddings `{settings.embed_model}`",
+    ]
+    if SECRETS_PROBLEM:
+        diagnostic.insert(0, f"- {SECRETS_PROBLEM}")
+    if "localhost" in settings.base_url:
+        diagnostic.append("- L'agent cherche un modèle local (Ollama) : en ligne, renseignez les **Secrets** de l'application.")
+    st.markdown("**Diagnostic** (la clé n'est jamais affichée) :\n" + "\n".join(diagnostic))
     st.stop()
 
 if "history" not in st.session_state:
